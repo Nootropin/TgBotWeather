@@ -9,8 +9,8 @@ namespace fs = std::filesystem;
 void initFolders(string,string);
 int main()
 {
-    string forecastsFolder = "forecasts",placesFolder = "places";
-    initFolders(placesFolder,forecastsFolder);
+    string weathersFolder = "weathers",placesFolder = "places";
+    initFolders(placesFolder,weathersFolder);
     string tgBotToken,apiKey;
     ifstream apiKeyFile("key.env"); // файл с ключем api для погоды
     ifstream tgKeyFile("tgbot.env");// файл с ключем api для бота в телеграмме
@@ -18,9 +18,8 @@ int main()
     getline(tgKeyFile,tgBotToken);
     apiKeyFile.close();
     tgKeyFile.close(); // Получение ключей из файлов
-
     TgBot::Bot bot(tgBotToken); // Создание бота
-    weatherBot wBot(bot,apiKey,forecastsFolder);
+    weatherBot wBot(bot,apiKey,weathersFolder,placesFolder);
     bot.getEvents().onCommand("start",[&](TgBot::Message::Ptr mess){wBot.startCommandHandler(mess);});
     bot.getEvents().onCommand("weather",[&](TgBot::Message::Ptr mess){wBot.weatherCommandHandler(mess);});
     bot.getEvents().onAnyMessage([&](TgBot::Message::Ptr mess){

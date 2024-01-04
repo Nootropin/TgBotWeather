@@ -1,17 +1,19 @@
 #include"bot.hpp"
 #include"requests.hpp"
-weatherBot::weatherBot(TgBot::Bot& bot,string apiKey,string forecastsFolder)
+weatherBot::weatherBot(TgBot::Bot& bot,string apiKey,string weathersFolder,string placesFolder)
 {
     this->apiKey = apiKey;
     this->bot = &bot;
-    this->forecastsFolder = deleteSlashInFolder(forecastsFolder);
+    this->weathersFolder = deleteSlashInFolder(weathersFolder);
+    this->placesFolder = deleteSlashInFolder(placesFolder);
 }
-class ascciException: public::exception //Класс ошибки, если в строке содержатся Unicode символы
+class ascciException : public::exception //Класс ошибки, если в строке содержатся Unicode символы
 {
-    string what()
-    {
-        return "Non Ascii Symbols";
-    }
+    public:
+        char* what()
+        {
+            return "Non Ascii Symbols";
+        }
 };
 void weatherBot::startCommandHandler(TgBot::Message::Ptr message) // Обработчик команды /start
 {
@@ -47,7 +49,7 @@ void weatherBot::weatherCommandHandler(TgBot::Message::Ptr message) // Обра�
         if(!containUnicode(message->text)) // проверка на то, что в строке только UTF-8 символы
         {
             string place = StringTools::split(message->text,' ')[1]; // получение места, разбиением строки на две части - "/weather" и само место
-            botSendMessageWithWeather(message,place); // отправляем запрос пользователю
+            botSendMessageWithCurrentWeather(message,place); // отправляем запрос пользователю
         }
         else{
             throw ascciException();
@@ -55,7 +57,7 @@ void weatherBot::weatherCommandHandler(TgBot::Message::Ptr message) // Обра�
     }
     catch(const exception& e)
     {
-        cerr << e.what() << '\n';
+        cout << e.what() << '\n';
         this->bot->getApi().sendMessage(message->chat->id,"Error occured parsing message");
     }   
 }
@@ -66,7 +68,7 @@ void weatherBot::anyMessageHandler(TgBot::Message::Ptr message) // Обрабо�
         if(!containUnicode(message->text)) // проверка на то, что в строке только UTF-8 символы
         {
             string place = message->text; // получение места, разбиением строки на две части - "/weather" и само место
-            botSendMessageWithWeather(message,place); // отправляем запрос пользователю
+            botSendMessageWithCurrentWeather(message,place); // отправляем запрос пользователю
         }
         else{
             throw ascciException();
@@ -74,16 +76,16 @@ void weatherBot::anyMessageHandler(TgBot::Message::Ptr message) // Обрабо�
     }
     catch(const exception& e)
     {
-        cerr << e.what() << '\n';
+        cout << e.what() << '\n';
         this->bot->getApi().sendMessage(message->chat->id,"Error occured parsing message");
     }   
 }
 void weatherBot::mapDotHandler(TgBot::Message::Ptr message) // Обработчик точек на карте
 {
     string place = to_string(message->location->latitude) + "," + to_string(message->location->longitude); // формирование строки вида "lat,long" для запроса 
-    botSendMessageWithWeather(message,place);
+    botSendMessageWithCurrentWeather(message,place);
 }
-void weatherBot::botSendMessageWithWeather(TgBot::Message::Ptr message,string place)
+void weatherBot::botSendMessageWithCurrentWeather(TgBot::Message::Ptr message,string place)
 {
     json::value jsonValue;  
     long long currentTimeSeconds = chrono::duration_cast<chrono::seconds>(chrono::system_clock::now().time_since_epoch()).count(); //текущее время в секундах
@@ -95,7 +97,7 @@ void weatherBot::botSendMessageWithWeather(TgBot::Message::Ptr message,string pl
     }
     else
     {
-        jsonValue = getJsonFromFile(this->forecastsFolder + "/" + place); // считываем уже записанный прогноз
+        jsonValue = getJsonFromFile(this->weathersFolder + "/" + place); // считываем уже записанный прогноз
     }
     if(!jsonValue.as_object().if_contains("error")) // если в json нет поля "error"(то есть запрос удачный), то отправляем в боте в телеграмме текущую погоду
     {
@@ -123,7 +125,7 @@ void weatherBot::botSendMessageWithWeather(TgBot::Message::Ptr message,string pl
 }
 void weatherBot::writeForecastForPlace(string file,json::value jsonValue)
 {
-    string pathToForecastFile = this->forecastsFolder + "/" + file;
+    string pathToForecastFile = this->weathersFolder + "/" + file;
     string write = json::serialize(jsonValue); // преобразуем json в строку
     ofstream f(pathToForecastFile); // открываем файл с погодой
     f.clear(); // удаляем предыдущий прогноз
@@ -132,7 +134,7 @@ void weatherBot::writeForecastForPlace(string file,json::value jsonValue)
 }
 int weatherBot::lastTimeUpdateCheck(string file)
 {
-    string path = this->forecastsFolder + "/" + file;
+    string path = this->weathersFolder + "/" + file;
     if(fs::exists(path))
     {
         ifstream f(path);

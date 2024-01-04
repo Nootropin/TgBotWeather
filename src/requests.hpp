@@ -9,7 +9,7 @@ class weatherRequest
 {
     public:
         string key;
-        weatherRequest(string);
-        boost::json::value requestWeather(string);
+        weatherRequest(string apiKey);
+        boost::json::value requestWeather(string place);
 };
 #endif

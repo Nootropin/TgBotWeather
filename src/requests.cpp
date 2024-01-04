@@ -1,5 +1,5 @@
 #include"requests.hpp"
-size_t writer(char* buffer, size_t size, size_t nmemb, std::string* html) { // запись для CURLOPT_WRITEFUNCTION
+size_t writer(char* buffer, size_t size, size_t nmemb, string* html) { // запись для CURLOPT_WRITEFUNCTION
     int result = 0;
 
     if (buffer != NULL) {
@@ -9,16 +9,16 @@ size_t writer(char* buffer, size_t size, size_t nmemb, std::string* html) { // �
 
     return result;
 }
-boost::json::value weatherRequest::requestWeather(std::string location)
+boost::json::value weatherRequest::requestWeather(string location)
 {
     CURL* curl = curl_easy_init();
     if(curl)
     {
         CURLcode res;
-        std::string baseUrl = "http://api.weatherapi.com/v1/current.json";
-        std::string key = this->key;
-        std::string requestUrl = baseUrl + "?key=" + key +"&q=" + location; // формирование запроса 
-        std::string data;
+        string baseUrl = "http://api.weatherapi.com/v1/current.json";
+        string key = this->key;
+        string requestUrl = baseUrl + "?key=" + key +"&q=" + location; // формирование запроса 
+        string data;
         curl_easy_setopt(curl, CURLOPT_URL, requestUrl.c_str()); // постановка ссылка
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writer); // постановка функции обработчика
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &data); // постановка переменной для записи
@@ -35,7 +35,7 @@ boost::json::value weatherRequest::requestWeather(std::string location)
         return "Problem With CUrl"; // ошибка инициализации Curl
     }
 }
-weatherRequest::weatherRequest(std::string key)
+weatherRequest::weatherRequest(string key)
 {
     this->key = key;
 }

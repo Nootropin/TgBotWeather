@@ -4,11 +4,12 @@
 #include<iostream>
 #include<fstream>
 #include<boost/json.hpp>
+using namespace std;
 class weatherRequest
 {
     public:
-        std::string key;
-        weatherRequest(std::string);
-        boost::json::value requestWeather(std::string);
+        string key;
+        weatherRequest(string);
+        boost::json::value requestWeather(string);
 };
 #endif

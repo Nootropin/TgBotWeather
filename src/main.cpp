@@ -34,7 +34,7 @@ int main()
             printf("Long poll started\n");
             longPoll.start();
         }
-    } catch (std::exception& e) {
+    } catch (exception& e) {
         printf("error: %s\n", e.what());
     }
 }

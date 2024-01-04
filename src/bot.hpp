@@ -9,4 +9,5 @@ void startCommandHandler(TgBot::Message::Ptr, TgBot::Bot&);
 void weatherCommandHandler(TgBot::Message::Ptr, TgBot::Bot&,string);
 void anyMessageHandler(TgBot::Message::Ptr, TgBot::Bot&,string);
 void mapDotHandler(TgBot::Message::Ptr, TgBot::Bot&,string);
+void botSendMessageFromJson(TgBot::Message::Ptr, TgBot::Bot&,json::value);
 #endif

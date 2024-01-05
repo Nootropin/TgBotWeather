@@ -17,13 +17,15 @@ class weatherBot
         void weatherCommandHandler(TgBot::Message::Ptr messag);
         void anyMessageHandler(TgBot::Message::Ptr message);
         void mapDotHandler(TgBot::Message::Ptr message);
-        weatherBot(TgBot::Bot& bot,string apiKey,string weathersFolder,string placesFolder); 
+        void forecastCommandHandler(TgBot::Message::Ptr message);
+        weatherBot(TgBot::Bot& bot,string apiKey,string weathersFolder,string forecastsFolder); 
     private:
         void botSendMessageFromJson(TgBot::Message::Ptr message,json::value jsonValue);
-        void writeForecastForPlace(string place, json::value jsonValue);
+        void writeJsonInFile(string place, json::value jsonValue);
         int lastTimeUpdateCheck(string file);
         void botSendMessageWithCurrentWeather(TgBot::Message::Ptr message ,string place);
+        void sendForecast(TgBot::Message::Ptr message,json::value jsonValue);
         TgBot::Bot* bot;
-        string apiKey,weathersFolder,placesFolder;
+        string apiKey,weathersFolder,placesFolder,forecastsFolder;
 };
 #endif

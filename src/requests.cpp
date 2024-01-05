@@ -1,6 +1,6 @@
 #include"requests.hpp"
-size_t writer(char* buffer, size_t size, size_t nmemb, string* html) { // запись для CURLOPT_WRITEFUNCTION
-    int result = 0;
+long long writer(char* buffer, long long size, long long nmemb, string* html) { // запись для CURLOPT_WRITEFUNCTION
+    long long result = 0;
 
     if (buffer != NULL) {
         html->append(buffer, size * nmemb);
@@ -9,7 +9,7 @@ size_t writer(char* buffer, size_t size, size_t nmemb, string* html) { // зап
 
     return result;
 }
-boost::json::value weatherRequest::requestWeather(string location)
+json::value weatherRequest::requestWeather(string location)
 {
     CURL* curl = curl_easy_init();
     if(curl)
@@ -28,7 +28,36 @@ boost::json::value weatherRequest::requestWeather(string location)
             return curl_easy_strerror(res); // обработка ошибок
         }
         curl_easy_cleanup(curl); // клинап 
-        return boost::json::parse(data); // формирование json
+        
+        return json::parse(data); // формирование json
+    }
+    else
+    {
+        return "Problem With CUrl"; // ошибка инициализации Curl
+    }
+}
+json::value weatherRequest::requestForecast(string location,string dayAmount)
+{
+    CURL* curl = curl_easy_init();
+    if(curl)
+    {
+        CURLcode res;
+        string baseUrl = "http://api.weatherapi.com/v1/forecast.json";
+        string key = this->key;
+        string requestUrl = baseUrl + "?key=" + key +"&q=" + location + "&days=" + dayAmount; // формирование запроса 
+        string data;
+        curl_easy_setopt(curl, CURLOPT_URL, requestUrl.c_str()); // постановка ссылка
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writer); // постановка функции обработчика
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &data); // постановка переменной для записи
+        curl_easy_setopt(curl, CURLOPT_UPLOAD_BUFFERSIZE, 100000);
+        res = curl_easy_perform(curl); // запрос 
+        cout << data.length() << endl;
+        if(res != CURLE_OK)
+        {
+            return curl_easy_strerror(res); // обработка ошибок
+        }
+        curl_easy_cleanup(curl); // клинап 
+        return json::parse(data); // формирование json
     }
     else
     {

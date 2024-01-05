@@ -1,5 +1,8 @@
 #include <iostream>
 #include <filesystem>
+#include <fstream>
+#include <tgbot/tgbot.h>
+#include <boost/json.hpp>
 #include "requests.hpp"
 #include "bot.hpp"
 namespace json = boost::json;
@@ -9,8 +12,8 @@ namespace fs = std::filesystem;
 void initFolders(string,string);
 int main()
 {
-    string weathersFolder = "weathers",placesFolder = "places";
-    initFolders(placesFolder,weathersFolder);
+    string weathersFolder = "weathers",forecastsFolder="forecasts";
+    initFolders(weathersFolder,forecastsFolder);
     string tgBotToken,apiKey;
     ifstream apiKeyFile("key.env"); // файл с ключем api для погоды
     ifstream tgKeyFile("tgbot.env");// файл с ключем api для бота в телеграмме
@@ -19,9 +22,11 @@ int main()
     apiKeyFile.close();
     tgKeyFile.close(); // Получение ключей из файлов
     TgBot::Bot bot(tgBotToken); // Создание бота
-    weatherBot wBot(bot,apiKey,weathersFolder,placesFolder);
+    weatherBot wBot(bot,apiKey,weathersFolder,forecastsFolder);
+    cout << "Inited bots" << endl;
     bot.getEvents().onCommand("start",[&](TgBot::Message::Ptr mess){wBot.startCommandHandler(mess);});
     bot.getEvents().onCommand("weather",[&](TgBot::Message::Ptr mess){wBot.weatherCommandHandler(mess);});
+    bot.getEvents().onCommand("forecast",[&](TgBot::Message::Ptr mess){wBot.forecastCommandHandler(mess);});
     bot.getEvents().onAnyMessage([&](TgBot::Message::Ptr mess){
         if(mess->text != "") // Проверка на наличие текста  
         {
@@ -29,24 +34,21 @@ int main()
         }
         else if(mess->location != NULL) wBot.mapDotHandler(mess); // если текста нет и есть локация, то обрабатываем как точку на карте
     }); // Добавление обработчиков событий
-
     try {
-        printf("Bot username: %s\n", bot.getApi().getMe()->username.c_str());
-        bot.getApi().deleteWebhook();
-
+        printf("Bot username");
         TgLongPoll longPoll(bot);
         while (true) {
             printf("Long poll started\n");
             longPoll.start();
         }
     } catch (exception& e) {
-        printf("error: %s\n", e.what());
+        cout << e.what();
     }
 }
-void initFolders(string places,string forecasts)
+void initFolders(string weathers,string forecasts)
 {
-    fs::path placesFolders(places); // папка для хранения мест пользователя
-    fs::path forecastsFolders(forecasts); // папка для хранения прогнозов, обновляется каждый час
-    if(!fs::exists(placesFolders)) fs::create_directory(places);
-    if(!fs::exists(forecastsFolders)) fs::create_directory(forecasts);
+    fs::path weathersFolder(weathers); // папка для хранения погоды, обновляется каждые 15 минут
+    fs::path forecastsFolder(forecasts); // папка для хранения прогнозов, обновляется каждые 15 минут
+    if(!fs::exists(weathersFolder)) fs::create_directory(weathers);
+    if(!fs::exists(forecastsFolder)) fs::create_directory(forecasts);
 }

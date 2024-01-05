@@ -17,5 +17,4 @@ if (CURL_FOUND)
     add_definitions(-DHAVE_CURL)
 endif()
 add_executable(echobot src/main.cpp src/requests.cpp src/bot.cpp)
-
 target_link_libraries(echobot /usr/local/lib/libTgBot.a /usr/local/lib/boost/libboost_json.a ${CMAKE_THREAD_LIBS_INIT} ${OPENSSL_LIBRARIES} ${Boost_LIBRARIES} ${CURL_LIBRARIES})
